@@ -2,10 +2,7 @@ package musicapi;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,6 +19,32 @@ public class MusicManager {
             new Music("Tokyo drift remix", "Callmearco", System.currentTimeMillis() + 1)
     ));
 
+
+    //CREATE - POST
+    //Insert new items
+    // /music/{"artist": , "title": }
+    @PostMapping
+    public ResponseEntity<Music> insertMusic(@RequestBody Music music) {
+        // Basic validation
+        if (music.getArtist() == null || music.getArtist().trim().isEmpty() || music.getTitle() == null || music.getTitle().trim().isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(null);
+        }
+
+        // Simulate ID generation
+        music.setId(System.currentTimeMillis() + 3);
+
+        // Add to in-memory list
+        musicList.add(music);
+
+        // Return CREATED with the created resource
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(music);
+    }
+
+    //READ GET
     //list out items
     @GetMapping
     public ResponseEntity<?> QueryMusic() {
@@ -30,7 +53,6 @@ public class MusicManager {
                 .<ResponseEntity<?>>map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body("Empty list."));
     }
-
     //request a specific id with /music/{id}
     @GetMapping("/{id}")
     public ResponseEntity<?> GetMusicById(@PathVariable long id) {
@@ -40,5 +62,29 @@ public class MusicManager {
                 .orElseGet(() -> new ResponseEntity<>("ID: " + " music cannot be found", HttpStatus.NOT_FOUND));
     }
 
-    
+
+    //UPDATE PUT
+    //update items
+
+
+
+
+
+    //DELETE
+    //delete items
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteMusic(@PathVariable Long id) {
+        Optional<Music> optionalMuisc = musicList.stream().filter(music -> music.getId().equals(id)).findFirst();
+
+        if (optionalMuisc.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Music with ID " + id + " was not found.");
+        }
+
+        musicList.remove(optionalMuisc.get());
+        return ResponseEntity.noContent().build();
+    }
+
+
+
 }
