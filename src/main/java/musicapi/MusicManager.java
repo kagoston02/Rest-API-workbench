@@ -3,6 +3,7 @@ package musicapi;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/m")
+@RequestMapping("/music")
 public class MusicManager {
 
     //initialize
@@ -30,4 +31,14 @@ public class MusicManager {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body("Empty list."));
     }
 
+    //request a specific id with /music/{id}
+    @GetMapping("/{id}")
+    public ResponseEntity<?> GetMusicById(@PathVariable long id) {
+        Optional<Music> optMusic = musicList.stream().filter(music -> music.getId() == id).findFirst();
+
+        return optMusic.<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> new ResponseEntity<>("ID: " + " music cannot be found", HttpStatus.NOT_FOUND));
+    }
+
+    
 }
