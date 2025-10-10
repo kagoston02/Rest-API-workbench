@@ -1,5 +1,6 @@
 package musicapi;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -65,6 +66,24 @@ public class MusicManager {
 
     //UPDATE PUT
     //update items
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateMusic(@PathVariable Long id, @RequestBody Music music) {
+        Music existingMusic = findById(id);
+        if (existingMusic == null) {
+            throw new NotFoundException("Music not found");
+        }
+
+        // Update fields — you can adjust this part depending on your entity
+        existingMusic.setTitle(music.getTitle());
+        existingMusic.setArtist(music.getArtist());
+        existingMusic.setId(music.getId());
+        // ... (update any other fields you want)
+
+        // Save the updated music entity
+        Music updatedMusic = Music.save(existingMusic);
+
+        return ResponseEntity.ok(updatedMusic);
+    }
 
 
 
@@ -83,6 +102,13 @@ public class MusicManager {
 
         musicList.remove(optionalMuisc.get());
         return ResponseEntity.noContent().build();
+    }
+
+    //find function
+    private Music findById(long id) {
+        return musicList.stream().filter(music -> music.getId() == id).findFirst().orElseThrow(
+                () -> new NotFoundException("Music not found")
+        );
     }
 
 
