@@ -29,23 +29,29 @@ public class MusicManager {
     // /music/{"artist": , "title": }
     @PostMapping
     public ResponseEntity<Music> insertMusic(@RequestBody Music music) {
-        // Basic validation
-        if (music.getArtist() == null || music.getArtist().trim().isEmpty() || music.getTitle() == null || music.getTitle().trim().isEmpty()) {
+        logger.info("Inserting music {}", music);
+        try{
+            // Basic validation
+            if (music.getArtist() == null || music.getArtist().trim().isEmpty() || music.getTitle() == null || music.getTitle().trim().isEmpty()) {
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(null);
+            }
+
+            // Simulate ID generation
+            music.setId(System.currentTimeMillis() + 3);
+
+            // Add to in-memory list
+            musicList.add(music);
+
+            // Return CREATED with the created resource
             return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(null);
+                    .status(HttpStatus.CREATED)
+                    .body(music);
+        }catch (Exception e){
+            logger.error("Error inserting music {}: {}",music, e.getMessage());
+            throw e;
         }
-
-        // Simulate ID generation
-        music.setId(System.currentTimeMillis() + 3);
-
-        // Add to in-memory list
-        musicList.add(music);
-
-        // Return CREATED with the created resource
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(music);
     }
 
     //READ GET
@@ -57,6 +63,8 @@ public class MusicManager {
                 .<ResponseEntity<?>>map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body("Empty list."));
     }
+
+
     //request a specific id with /music/{id}
     @GetMapping("/{id}")
     public ResponseEntity<?> GetMusicById(@PathVariable long id) {
@@ -88,6 +96,7 @@ public class MusicManager {
             return ResponseEntity.ok("ID: " + id + " music updated");
         }catch (NotFoundException e) {
             logger.error("Failed to update music with  ID {}: {}", id, e.getCause());
+            throw e;
         }
     }
 
@@ -100,15 +109,21 @@ public class MusicManager {
     //delete items
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteMusic(@PathVariable Long id) {
-        Optional<Music> optionalMuisc = musicList.stream().filter(music -> music.getId().equals(id)).findFirst();
+        logger.info("Deleting music with ID {} ", id);
+        try {
+            Optional<Music> optionalMuisc = musicList.stream().filter(music -> music.getId().equals(id)).findFirst();
 
-        if (optionalMuisc.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Music with ID " + id + " was not found.");
+            if (optionalMuisc.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Music with ID " + id + " was not found.");
+            }
+
+            musicList.remove(optionalMuisc.get());
+            return ResponseEntity.noContent().build();
+        }catch (NotFoundException e) {
+            logger.error("Failed to delete music with  ID {}: {}", id, e.getCause());
+            throw e;
         }
-
-        musicList.remove(optionalMuisc.get());
-        return ResponseEntity.noContent().build();
     }
 
     //find function
