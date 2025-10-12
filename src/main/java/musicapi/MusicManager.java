@@ -1,5 +1,7 @@
 package musicapi;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +15,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/music")
 public class MusicManager {
+    private static final Logger logger = LoggerFactory.getLogger(MusicManager.class);
 
     //initialize
     private final List<Music> musicList = new ArrayList<>(Arrays.asList(
@@ -68,19 +71,24 @@ public class MusicManager {
     //update items
     @PutMapping("/{id}")
     public ResponseEntity<?> updateMusic(@PathVariable Long id, @RequestBody Music updatedMusic) {
-        Music music = findById(id);
-        if (updatedMusic.getArtist() == null || updatedMusic.getArtist().trim().isEmpty()
-                || updatedMusic.getTitle() == null || updatedMusic.getTitle().trim().isEmpty()) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body("Artist and title must not be empty.");
+        logger.info("Updating music with id: " + id);
+        try {
+            Music music = findById(id);
+            if (updatedMusic.getArtist() == null || updatedMusic.getArtist().trim().isEmpty()
+                    || updatedMusic.getTitle() == null || updatedMusic.getTitle().trim().isEmpty()) {
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body("Artist and title must not be empty.");
+            }
+
+            //updating attributes
+            music.setArtist(updatedMusic.getArtist());
+            music.setTitle(updatedMusic.getTitle());
+
+            return ResponseEntity.ok("ID: " + id + " music updated");
+        }catch (NotFoundException e) {
+            logger.error("Failed to update music with  ID {}: {}", id, e.getCause());
         }
-
-        //updating attributes
-        music.setArtist(updatedMusic.getArtist());
-        music.setTitle(updatedMusic.getTitle());
-
-        return ResponseEntity.ok("ID: " + id + " music updated");
     }
 
 
