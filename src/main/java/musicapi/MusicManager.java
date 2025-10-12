@@ -60,30 +60,29 @@ public class MusicManager {
         Optional<Music> optMusic = musicList.stream().filter(music -> music.getId() == id).findFirst();
 
         return optMusic.<ResponseEntity<?>>map(ResponseEntity::ok)
-                .orElseGet(() -> new ResponseEntity<>("ID: " + " music cannot be found", HttpStatus.NOT_FOUND));
+                .orElseGet(() -> new ResponseEntity<>("ID: " + id + " music cannot be found", HttpStatus.NOT_FOUND));
     }
 
 
     //UPDATE PUT
     //update items
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateMusic(@PathVariable Long id, @RequestBody Music music) {
-        Music existingMusic = findById(id);
-        if (existingMusic == null) {
-            throw new NotFoundException("Music not found");
+    public ResponseEntity<?> updateMusic(@PathVariable Long id, @RequestBody Music updatedMusic) {
+        Music music = findById(id);
+        if (updatedMusic.getArtist() == null || updatedMusic.getArtist().trim().isEmpty()
+                || updatedMusic.getTitle() == null || updatedMusic.getTitle().trim().isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("Artist and title must not be empty.");
         }
 
-        // Update fields — you can adjust this part depending on your entity
-        existingMusic.setTitle(music.getTitle());
-        existingMusic.setArtist(music.getArtist());
-        existingMusic.setId(music.getId());
-        // ... (update any other fields you want)
+        //updating attributes
+        music.setArtist(updatedMusic.getArtist());
+        music.setTitle(updatedMusic.getTitle());
 
-        // Save the updated music entity
-        Music updatedMusic = Music.save(existingMusic);
-
-        return ResponseEntity.ok(updatedMusic);
+        return ResponseEntity.ok("ID: " + id + " music updated");
     }
+
 
 
 
