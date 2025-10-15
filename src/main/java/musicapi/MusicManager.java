@@ -5,7 +5,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import jakarta.validation.Validator;
+import musicapi.validation.OnCreateOrUpdate;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validation;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,6 +27,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/music")
+@Validated
 public class MusicManager {
     private static final Logger logger = LoggerFactory.getLogger(MusicManager.class);
 
@@ -38,12 +52,12 @@ public class MusicManager {
                         .body(null);
             }
 
+
+            validateAndThrow(music, OnCreateOrUpdate.class);
             // Simulate ID generation
             music.setId(System.currentTimeMillis() + 3);
-
             // Add to in-memory list
             musicList.add(music);
-
             // Return CREATED with the created resource
             return ResponseEntity
                     .status(HttpStatus.CREATED)
@@ -89,6 +103,7 @@ public class MusicManager {
                         .body("Artist and title must not be empty.");
             }
 
+            validateAndThrow(updatedMusic, OnCreateOrUpdate.class);
             //updating attributes
             music.setArtist(updatedMusic.getArtist());
             music.setTitle(updatedMusic.getTitle());
@@ -118,6 +133,7 @@ public class MusicManager {
                         .body("Music with ID " + id + " was not found.");
             }
 
+
             musicList.remove(optionalMuisc.get());
             return ResponseEntity.noContent().build();
         }catch (NotFoundException e) {
@@ -131,6 +147,13 @@ public class MusicManager {
         return musicList.stream().filter(music -> music.getId() == id).findFirst().orElseThrow(
                 () -> new NotFoundException("Music not found")
         );
+    }
+
+
+    private void validateAndThrow(Object object, Class<?>... groups) {
+        var validator = Validation.buildDefaultValidatorFactory().getValidator();
+        var violations = validator.validate(object, groups);
+        if (!violations.isEmpty()) throw new ConstraintViolationException(violations);
     }
 
 
