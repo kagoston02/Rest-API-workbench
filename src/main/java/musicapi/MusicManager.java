@@ -45,14 +45,7 @@ public class MusicManager {
     public ResponseEntity<Music> insertMusic(@RequestBody Music music) {
         logger.info("Inserting music {}", music);
         try{
-            // Basic validation
-            if (music.getArtist() == null || music.getArtist().trim().isEmpty() || music.getTitle() == null || music.getTitle().trim().isEmpty()) {
-                return ResponseEntity
-                        .status(HttpStatus.BAD_REQUEST)
-                        .body(null);
-            }
-
-
+            //complet validation
             validateAndThrow(music, OnCreateOrUpdate.class);
             // Simulate ID generation
             music.setId(System.currentTimeMillis() + 3);
@@ -96,13 +89,8 @@ public class MusicManager {
         logger.info("Updating music with id: " + id);
         try {
             Music music = findById(id);
-            if (updatedMusic.getArtist() == null || updatedMusic.getArtist().trim().isEmpty()
-                    || updatedMusic.getTitle() == null || updatedMusic.getTitle().trim().isEmpty()) {
-                return ResponseEntity
-                        .status(HttpStatus.BAD_REQUEST)
-                        .body("Artist and title must not be empty.");
-            }
 
+            //complet validation
             validateAndThrow(updatedMusic, OnCreateOrUpdate.class);
             //updating attributes
             music.setArtist(updatedMusic.getArtist());

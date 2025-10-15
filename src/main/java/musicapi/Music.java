@@ -1,8 +1,13 @@
 package musicapi;
 
+import jakarta.validation.constraints.NotEmpty;
+import musicapi.validation.OnCreateOrUpdate;
+
 public class Music {
     private String title;
+    @NotEmpty(message = "field cannot be left empty.", groups = OnCreateOrUpdate.class)
     private String artist;
+    @NotEmpty(message = "filed cannot be left empty.", groups = OnCreateOrUpdate.class)
     private Long id;
 
     public Music(String title, String artist, Long id) {
